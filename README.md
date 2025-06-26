@@ -1,6 +1,6 @@
 # Hi there 👋
 
-[my blog here](https://github.com/shadow3aaa/blog)
+[my blog here](https://shadow3aaa.github.io/blog)
 
 ![Anurag's GitHub stats](https://github-readme-stats.vercel.app/api?username=shadow3aaa&show_icons=true&theme=radical)
 
