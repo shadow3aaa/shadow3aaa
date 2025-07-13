@@ -1,6 +1,6 @@
 # Hi there 👋
 
-I's shadow3, a simple cs student from China.
+I'm shadow3, a simple cs student from China.
 
 ## ✍️ Recent Blog Posts
 
