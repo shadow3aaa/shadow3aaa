@@ -3,11 +3,16 @@ name: Blog Post Updater
 on:
   schedule:
     - cron: '0 0 * * *' # 每天午夜执行
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
   update-blog-posts:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v4
