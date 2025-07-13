@@ -26,6 +26,7 @@ jobs:
       - name: Generate blog links
         id: generate_links
         run: |
+          cat > generate-links.js <<'EOL'
           const fs = require('fs');
           const path = require('path');
 
@@ -90,6 +91,8 @@ jobs:
             console.error('Placeholder not found in README.md');
             process.exit(1);
           }
+          EOL
+          node generate-links.js
 
       - name: Commit and push if changed
         run: |

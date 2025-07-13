@@ -3,6 +3,7 @@
 [blog](https://shadow3aaa.github.io/blog)
 
 ## ✍️ Recent Blog Posts
+
 <!-- BLOG-POST-LIST:START -->
 <!-- BLOG-POST-LIST:END -->
 
