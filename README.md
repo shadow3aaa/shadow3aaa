@@ -1,6 +1,6 @@
 # Hi there 👋
 
-[blog](https://shadow3aaa.github.io/blog)
+I's shadow3, a simple cs student from China.
 
 ## ✍️ Recent Blog Posts
 
