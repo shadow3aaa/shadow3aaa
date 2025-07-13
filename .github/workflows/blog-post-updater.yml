@@ -1,0 +1,104 @@
+name: Blog Post Updater
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 每天午夜执行
+  workflow_dispatch:
+
+jobs:
+  update-blog-posts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+
+      - name: Checkout blog repo
+        uses: actions/checkout@v4
+        with:
+          repository: shadow3aaa/blog
+          path: blog
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate blog links
+        id: generate_links
+        run: |
+          const fs = require('fs');
+          const path = require('path');
+
+          const contentDir = path.join(process.cwd(), 'blog', 'content');
+          const files = fs.readdirSync(contentDir);
+
+          const posts = files
+            .map(file => {
+              if (!file.endsWith('.md')) {
+                return null;
+              }
+              const filePath = path.join(contentDir, file);
+              const content = fs.readFileSync(filePath, 'utf-8');
+              
+              const frontMatterMatch = content.match(/^---\s*([\s\S]*?)\s*---/);
+              if (!frontMatterMatch) {
+                return null; // Not a valid post file
+              }
+              
+              const frontMatter = frontMatterMatch[1];
+              const dateMatch = frontMatter.match(/^date:\s*(.*)\s*$/m);
+              const titleMatch = frontMatter.match(/^title:\s*"(.*)"\s*$|^title:\s*(.*)\s*$/m);
+
+              const title = titleMatch ? (titleMatch[1] || titleMatch[2]) : file.replace('.md', '');
+              const date = dateMatch ? new Date(dateMatch[1]) : new Date(0);
+
+              return {
+                filename: file,
+                date: date,
+                title: title,
+              };
+            })
+            .filter(post => post !== null);
+
+          posts.sort((a, b) => b.date - a.date);
+
+          const recentPosts = posts.slice(0, 5);
+
+          const links = recentPosts.map(post => {
+            const slug = post.filename.replace(/\.md$/, '').toLowerCase().replace(/ /g, '-');
+            const url = `https://shadow3aaa.github.io/blog/${slug}/`;
+            return `- [${post.title}](${url})`;
+          }).join('\n');
+          
+          console.log('Generated Links:\n', links);
+          
+          const readmePath = 'README.md';
+          let readmeContent = fs.readFileSync(readmePath, 'utf-8');
+          
+          const listStartMarker = '<!-- BLOG-POST-LIST:START -->';
+          const listEndMarker = '<!-- BLOG-POST-LIST:END -->';
+          
+          const startIndex = readmeContent.indexOf(listStartMarker);
+          const endIndex = readmeContent.indexOf(listEndMarker);
+          
+          if (startIndex !== -1 && endIndex !== -1) {
+            const newContent = `${listStartMarker}\n${links}\n${listEndMarker}`;
+            readmeContent = readmeContent.substring(0, startIndex) + newContent + readmeContent.substring(endIndex + listEndMarker.length);
+            fs.writeFileSync(readmePath, readmeContent);
+            console.log('Updated README.md');
+          } else {
+            console.error('Placeholder not found in README.md');
+            process.exit(1);
+          }
+
+      - name: Commit and push if changed
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add README.md
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "docs: update latest blog posts"
+          git push
