@@ -5,11 +5,11 @@ I'm shadow3, a simple cs student from China.
 ## ✍️ Recent Blog Posts
 
 <!-- BLOG-POST-LIST:START -->
+- [为强迫症准备的rust导入格式脚本](https://shadow3aaa.github.io/blog/rust-script-to-format-use-imports-for-the-aesthetically-obsessed/)
 - [Tessera 中一种全新的 GPU Pass 组织方法](https://shadow3aaa.github.io/blog/a-new-gpu-pass-organization-zh/)
 - [为 Asus 笔记本添加 PID 风扇控制](https://shadow3aaa.github.io/blog/ghelper-fan-plugin-system-dev-log/)
 - [G1 vs. G2 圆角：理论与 wgpu 实现剖析](https://shadow3aaa.github.io/blog/g1-g2-rounded-corners-wgpu/)
 - [在Rust中做类型擦除的动态分发](https://shadow3aaa.github.io/blog/dynamic-dispatch-in-rust/)
-- [Rust GUI in mid-2025](https://shadow3aaa.github.io/blog/rust-gui-in-2025-mid/)
 <!-- BLOG-POST-LIST:END -->
 
 ![Anurag's GitHub stats](https://github-readme-stats.vercel.app/api?username=shadow3aaa&show_icons=true&theme=radical)
