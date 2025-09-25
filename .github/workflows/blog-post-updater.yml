@@ -71,7 +71,7 @@ jobs:
           const recentPosts = posts.slice(0, 5);
 
           const links = recentPosts.map(post => {
-            const slug = post.filename.replace(/\.md$/, '').toLowerCase().replace(/ /g, '-');
+            const slug = post.filename.replace(/\.md$/, '').toLowerCase().replace(/[()]/g, '').replace(/ /g, '-');
             const url = `https://shadow3aaa.github.io/blog/${slug}/`;
             return `- [${post.title}](${url})`;
           }).join('\n');
