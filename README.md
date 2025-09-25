@@ -5,8 +5,8 @@ I'm shadow3, a simple cs student from China.
 ## ✍️ Recent Blog Posts
 
 <!-- BLOG-POST-LIST:START -->
-- [小说Agent计划(二): 实现关系图](https://shadow3aaa.github.io/blog/小说agent计划(二)/)
-- [小说Agent计划(一)](https://shadow3aaa.github.io/blog/小说agent计划(一)/)
+- [小说Agent计划(二): 实现关系图](https://shadow3aaa.github.io/blog/小说agent计划二/)
+- [小说Agent计划(一)](https://shadow3aaa.github.io/blog/小说agent计划一/)
 - [Tessera UI v2.0.0](https://shadow3aaa.github.io/blog/tessera-ui-v2.0.0-release/)
 - [Tessera UI v1.0.0](https://shadow3aaa.github.io/blog/tessera-ui-v1.0.0-release/)
 - [为强迫症准备的rust导入格式脚本](https://shadow3aaa.github.io/blog/rust-script-to-format-use-imports-for-the-aesthetically-obsessed/)
