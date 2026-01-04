@@ -1,0 +1,57 @@
+name: Render README stats
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */24 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: render-readme-stats
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout profile repo
+        uses: actions/checkout@v4
+
+      - name: Checkout github-readme-stats
+        uses: actions/checkout@v4
+        with:
+          repository: anuraghazra/github-readme-stats
+          path: _grs
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: _grs/package-lock.json
+
+      - name: Install deps (upstream)
+        working-directory: _grs
+        run: npm ci
+
+      - name: Render SVGs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GRS_USERNAME: shadow3aaa
+          GRS_THEME: radical
+          GRS_LANGS_LAYOUT: donut
+          GRS_DIR: _grs
+          OUT_DIR: dist
+        run: node scripts/render-grs.mjs
+
+      - name: Publish SVGs to output branch
+        uses: crazy-max/ghaction-github-pages@v3.1.0
+        with:
+          target_branch: output
+          build_dir: dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
