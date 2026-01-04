@@ -1,9 +1,15 @@
 name: Render README stats
 
 on:
-  workflow_dispatch:
+  # run automatically every 24 hours
   schedule:
     - cron: "0 */24 * * *"
+
+  workflow_dispatch:
+
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -46,12 +52,19 @@ jobs:
           GRS_LANGS_LAYOUT: donut
           GRS_DIR: _grs
           OUT_DIR: dist
-        run: node scripts/render-grs.mjs
+        run: |
+          # github-readme-stats only reads tokens from PAT_1/PAT_2/... env vars.
+          PAT_1="${{ secrets.PAT_1 }}"
+          if [ -z "$PAT_1" ]; then
+            PAT_1="${{ github.token }}"
+          fi
+          export PAT_1
+          node scripts/render-grs.mjs
 
       - name: Publish SVGs to output branch
         uses: crazy-max/ghaction-github-pages@v3.1.0
         with:
-          target_branch: output
+          target_branch: readme-stats
           build_dir: dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

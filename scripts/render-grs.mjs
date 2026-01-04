@@ -18,6 +18,14 @@ const username = process.env.GRS_USERNAME || "shadow3aaa";
 const theme = process.env.GRS_THEME || "radical";
 const langsLayout = process.env.GRS_LANGS_LAYOUT || "donut";
 
+const hasAnyPat = () => {
+  return Object.keys(process.env).some((key) => {
+    if (!/^PAT_\d+$/.test(key)) return false;
+    const value = process.env[key];
+    return typeof value === "string" && value.trim().length > 0;
+  });
+};
+
 const ensureDir = async (dir) => {
   await fs.mkdir(dir, { recursive: true });
 };
@@ -56,6 +64,12 @@ const handlerToSvg = async (handler, query) => {
 };
 
 const main = async () => {
+  if (!hasAnyPat()) {
+    throw new Error(
+      "No GitHub API tokens found. github-readme-stats requires env var PAT_1 (or PAT_2...) to be set."
+    );
+  }
+
   const statsHandlerMod = await import(
     pathToFileURL(path.join(upstreamDir, "api", "index.js")).href
   );
