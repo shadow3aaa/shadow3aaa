@@ -20,7 +20,7 @@ jobs:
       - name: Checkout blog repo
         uses: actions/checkout@v4
         with:
-          repository: shadow3aaa/blog
+          repository: shadow3aaa/shadow3aaa.github.io
           path: blog
 
       - name: Set up Node.js
@@ -35,34 +35,59 @@ jobs:
           const fs = require('fs');
           const path = require('path');
 
-          const contentDir = path.join(process.cwd(), 'blog', 'content');
-          const files = fs.readdirSync(contentDir);
+          const contentDir = path.join(process.cwd(), 'blog', 'content', 'blog');
+          const entries = fs.readdirSync(contentDir, { withFileTypes: true });
 
-          const posts = files
-            .map(file => {
-              if (!file.endsWith('.md')) {
+          function extractFrontMatter(content) {
+            const match = content.match(/^---\s*\r?\n([\s\S]*?)\r?\n---/);
+            return match ? match[1] : '';
+          }
+
+          function readField(frontMatter, key) {
+            const re = new RegExp(`^${key}:\\s*(.+)$`, 'm');
+            const match = frontMatter.match(re);
+            return match ? match[1].trim() : undefined;
+          }
+
+          function cleanValue(value) {
+            if (typeof value !== 'string') {
+              return undefined;
+            }
+            const trimmed = value.trim();
+            const unquoted = trimmed.replace(/^['"](.*)['"]$/, '$1').trim();
+            return unquoted || undefined;
+          }
+
+          const posts = entries
+            .filter(entry => entry.isDirectory())
+            .map(entry => {
+              const slugFromDir = entry.name;
+              const filePath = path.join(contentDir, slugFromDir, 'index.md');
+              if (!fs.existsSync(filePath)) {
                 return null;
               }
-              const filePath = path.join(contentDir, file);
+
               const content = fs.readFileSync(filePath, 'utf-8');
-              
-              const frontMatterMatch = content.match(/^---\s*([\s\S]*?)\s*---/);
-              if (!frontMatterMatch) {
-                return null; // Not a valid post file
+              const frontMatter = extractFrontMatter(content);
+              if (!frontMatter) {
+                return null;
               }
-              
-              const frontMatter = frontMatterMatch[1];
-              const dateMatch = frontMatter.match(/^date:\s*(.*)\s*$/m);
-              const titleMatch = frontMatter.match(/^title:\s*"(.*)"\s*$|^title:\s*(.*)\s*$/m);
 
-              const title = titleMatch ? (titleMatch[1] || titleMatch[2]) : file.replace('.md', '');
-              const date = dateMatch ? new Date(dateMatch[1]) : new Date(0);
+              const draft = cleanValue(readField(frontMatter, 'draft'))?.toLowerCase() === 'true';
+              if (draft) {
+                return null;
+              }
 
-              return {
-                filename: file,
-                date: date,
-                title: title,
-              };
+              const title = cleanValue(readField(frontMatter, 'title')) || slugFromDir;
+              const slug = cleanValue(readField(frontMatter, 'slug')) || slugFromDir;
+              const rawDate = cleanValue(readField(frontMatter, 'date'));
+              const date = rawDate ? new Date(rawDate) : new Date(0);
+
+              if (Number.isNaN(date.getTime())) {
+                return null;
+              }
+
+              return { title, slug, date };
             })
             .filter(post => post !== null);
 
@@ -71,8 +96,7 @@ jobs:
           const recentPosts = posts.slice(0, 5);
 
           const links = recentPosts.map(post => {
-            const slug = post.filename.replace(/\.md$/, '').toLowerCase().replace(/[()]/g, '').replace(/ /g, '-');
-            const url = `https://shadow3aaa.github.io/blog/${slug}/`;
+            const url = `https://shadow3aaa.github.io/blog/${encodeURI(post.slug)}/`;
             return `- [${post.title}](${url})`;
           }).join('\n');
           
