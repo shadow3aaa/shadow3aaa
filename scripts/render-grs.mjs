@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { fetchPublicStats } from "./public-stats.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,7 +31,17 @@ const ensureDir = async (dir) => {
   await fs.mkdir(dir, { recursive: true });
 };
 
-const handlerToSvg = async (handler, query) => {
+export const validateSvg = (body, statusCode = 200) => {
+  // Upstream handlers can return error cards with HTTP 200.
+  if (statusCode >= 400 || typeof body !== "string" ||
+      !/<svg\b/.test(body) || !/<\/svg>/.test(body) ||
+      /data-testid=["']message["']|Something went wrong!|Resource not accessible by integration/i.test(body)) {
+    throw new Error(`Refusing to publish invalid/error SVG (status ${statusCode})`);
+  }
+  return body;
+};
+
+export const handlerToSvg = async (handler, query) => {
   let body;
   const req = { query };
   const res = {
@@ -60,7 +71,7 @@ const handlerToSvg = async (handler, query) => {
     );
   }
 
-  return body;
+  return validateSvg(body, res.statusCode);
 };
 
 const main = async () => {
@@ -70,30 +81,44 @@ const main = async () => {
     );
   }
 
-  const statsHandlerMod = await import(
-    pathToFileURL(path.join(upstreamDir, "api", "index.js")).href
-  );
   const topLangsHandlerMod = await import(
     pathToFileURL(path.join(upstreamDir, "api", "top-langs.js")).href
   );
 
-  const statsHandler = statsHandlerMod.default;
   const topLangsHandler = topLangsHandlerMod.default;
 
-  if (typeof statsHandler !== "function") {
-    throw new Error("Upstream stats handler is not a function");
-  }
   if (typeof topLangsHandler !== "function") {
     throw new Error("Upstream top-langs handler is not a function");
   }
 
   await ensureDir(outDir);
 
-  const statsSvg = await handlerToSvg(statsHandler, {
-    username,
-    show_icons: "true",
-    theme,
-  });
+  let statsSvg;
+  if (process.env.GRS_PUBLIC_STATS === "true") {
+    const { renderStatsCard } = await import(
+      pathToFileURL(path.join(upstreamDir, "src", "cards", "stats.js")).href
+    );
+    const stats = await fetchPublicStats(username, process.env.PAT_1);
+    // Upstream reads rank for CSS/accessibility even when the rank is hidden.
+    statsSvg = validateSvg(renderStatsCard({ ...stats, rank: { level: "N/A", percentile: 100 } }, {
+      theme,
+      show_icons: true,
+      hide: ["contribs"],
+      hide_rank: true,
+      include_all_commits: true,
+      custom_title: `${username}'s GitHub Stats (public)`,
+      card_width: 450,
+    }));
+  } else {
+    const { default: statsHandler } = await import(
+      pathToFileURL(path.join(upstreamDir, "api", "index.js")).href
+    );
+    statsSvg = await handlerToSvg(statsHandler, {
+      username,
+      show_icons: "true",
+      theme,
+    });
+  }
 
   const langsSvg = await handlerToSvg(topLangsHandler, {
     username,
@@ -114,8 +139,9 @@ const main = async () => {
   );
 };
 
-main().catch((err) => {
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) main().catch((err) => {
   // eslint-disable-next-line no-console
   console.error(err);
   process.exitCode = 1;
 });
+

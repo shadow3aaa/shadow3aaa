@@ -30,6 +30,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: anuraghazra/github-readme-stats
+          ref: 54a7985aeefda00d5eadb55b80c17c7f976c37d2
           path: _grs
           fetch-depth: 1
 
@@ -53,10 +54,12 @@ jobs:
           GRS_DIR: _grs
           OUT_DIR: dist
         run: |
+          node --test scripts/*.test.mjs
           # github-readme-stats only reads tokens from PAT_1/PAT_2/... env vars.
           PAT_1="${{ secrets.PAT_1 }}"
           if [ -z "$PAT_1" ]; then
             PAT_1="${{ github.token }}"
+            export GRS_PUBLIC_STATS=true
           fi
           export PAT_1
           node scripts/render-grs.mjs
@@ -68,3 +71,4 @@ jobs:
           build_dir: dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

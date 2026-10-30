@@ -2,11 +2,15 @@ name: Blog Post Updater
 
 on:
   schedule:
-    - cron: '0 0 * * *' # 每天午夜执行
+    - cron: '0 0 * * *'
   push:
     branches:
       - main
   workflow_dispatch:
+
+concurrency:
+  group: blog-post-updater
+  cancel-in-progress: false
 
 jobs:
   update-blog-posts:
@@ -17,116 +21,19 @@ jobs:
       - name: Checkout this repo
         uses: actions/checkout@v4
 
-      - name: Checkout blog repo
-        uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          repository: shadow3aaa/shadow3aaa.github.io
-          path: blog
+          python-version: '3.12'
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Generate blog links
-        id: generate_links
+      - name: Generate blog links from published RSS
         run: |
-          cat > generate-links.js <<'EOL'
-          const fs = require('fs');
-          const path = require('path');
-
-          const contentDir = path.join(process.cwd(), 'blog', 'content', 'blog');
-          const entries = fs.readdirSync(contentDir, { withFileTypes: true });
-
-          function extractFrontMatter(content) {
-            const match = content.match(/^---\s*\r?\n([\s\S]*?)\r?\n---/);
-            return match ? match[1] : '';
-          }
-
-          function readField(frontMatter, key) {
-            const re = new RegExp(`^${key}:\\s*(.+)$`, 'm');
-            const match = frontMatter.match(re);
-            return match ? match[1].trim() : undefined;
-          }
-
-          function cleanValue(value) {
-            if (typeof value !== 'string') {
-              return undefined;
-            }
-            const trimmed = value.trim();
-            const unquoted = trimmed.replace(/^['"](.*)['"]$/, '$1').trim();
-            return unquoted || undefined;
-          }
-
-          const posts = entries
-            .filter(entry => entry.isDirectory())
-            .map(entry => {
-              const slugFromDir = entry.name;
-              const filePath = path.join(contentDir, slugFromDir, 'index.md');
-              if (!fs.existsSync(filePath)) {
-                return null;
-              }
-
-              const content = fs.readFileSync(filePath, 'utf-8');
-              const frontMatter = extractFrontMatter(content);
-              if (!frontMatter) {
-                return null;
-              }
-
-              const draft = cleanValue(readField(frontMatter, 'draft'))?.toLowerCase() === 'true';
-              if (draft) {
-                return null;
-              }
-
-              const title = cleanValue(readField(frontMatter, 'title')) || slugFromDir;
-              const slug = cleanValue(readField(frontMatter, 'slug')) || slugFromDir;
-              const rawDate = cleanValue(readField(frontMatter, 'date'));
-              const date = rawDate ? new Date(rawDate) : new Date(0);
-
-              if (Number.isNaN(date.getTime())) {
-                return null;
-              }
-
-              return { title, slug, date };
-            })
-            .filter(post => post !== null);
-
-          posts.sort((a, b) => b.date - a.date);
-
-          const recentPosts = posts.slice(0, 5);
-
-          const links = recentPosts.map(post => {
-            const url = `https://shadow3aaa.github.io/blog/${encodeURI(post.slug)}/`;
-            return `- [${post.title}](${url})`;
-          }).join('\n');
-          
-          console.log('Generated Links:\n', links);
-          
-          const readmePath = 'README.md';
-          let readmeContent = fs.readFileSync(readmePath, 'utf-8');
-          
-          const listStartMarker = '<!-- BLOG-POST-LIST:START -->';
-          const listEndMarker = '<!-- BLOG-POST-LIST:END -->';
-          
-          const startIndex = readmeContent.indexOf(listStartMarker);
-          const endIndex = readmeContent.indexOf(listEndMarker);
-          
-          if (startIndex !== -1 && endIndex !== -1) {
-            const newContent = `${listStartMarker}\n${links}\n${listEndMarker}`;
-            readmeContent = readmeContent.substring(0, startIndex) + newContent + readmeContent.substring(endIndex + listEndMarker.length);
-            fs.writeFileSync(readmePath, readmeContent);
-            console.log('Updated README.md');
-          } else {
-            console.error('Placeholder not found in README.md');
-            process.exit(1);
-          }
-          EOL
-          node generate-links.js
+          python -m unittest discover -s scripts -p 'test_*.py'
+          python scripts/update_blog_posts.py
 
       - name: Commit and push if changed
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
           git add README.md
           if git diff --staged --quiet; then
             echo "No changes to commit."
@@ -134,3 +41,4 @@ jobs:
           fi
           git commit -m "docs: update latest blog posts"
           git push
+

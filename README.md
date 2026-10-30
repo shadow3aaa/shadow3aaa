@@ -5,11 +5,11 @@ I'm shadow3, a simple cs student from China.
 ## ✍️ Recent Blog Posts
 
 <!-- BLOG-POST-LIST:START -->
-- [记一次 Claude 订阅](https://shadow3aaa.github.io/blog/how-do-I-get-claude/)
-- [SCOPE: Semantic Code Operation & Propagation Engine](https://shadow3aaa.github.io/blog/semantic-code-engine/)
-- [DaatLocus: 一个真正拥有经验的 Agent Runtime](https://shadow3aaa.github.io/blog/daat-locus-agent-runtime/)
-- [Critical-Path Control System](https://shadow3aaa.github.io/blog/critical-path-control-system/)
-- [新的 remember 特性](https://shadow3aaa.github.io/blog/new-remember-feature/)
+- [记一次 Claude 订阅](<https://shadow3aaa.github.io/blog/how-do-i-get-claude/>)
+- [SCOPE: Semantic Code Operation & Propagation Engine](<https://shadow3aaa.github.io/blog/semantic-code-engine/>)
+- [DaatLocus: 一个真正拥有经验的 Agent Runtime](<https://shadow3aaa.github.io/blog/daat-locus-agent-runtime/>)
+- [Critical-Path Control System](<https://shadow3aaa.github.io/blog/critical-path-control-system/>)
+- [新的 remember 特性](<https://shadow3aaa.github.io/blog/new-remember-feature/>)
 <!-- BLOG-POST-LIST:END -->
 
 ![GitHub stats](https://raw.githubusercontent.com/shadow3aaa/shadow3aaa/readme-stats/github-stats.svg)
@@ -18,5 +18,6 @@ I'm shadow3, a simple cs student from China.
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://github.com/shadow3aaa/shadow3aaa/raw/refs/heads/output/github-contribution-grid-snake-dark.svg" />
   <source media="(prefers-color-scheme: light)" srcset="https://github.com/shadow3aaa/shadow3aaa/raw/refs/heads/output/github-contribution-grid-snake.svg" />
-  <img alt="github-snake" src="github-snake.svg" />
+  <img alt="github-snake" src="https://raw.githubusercontent.com/shadow3aaa/shadow3aaa/output/github-contribution-grid-snake.svg" />
 </picture>
+
